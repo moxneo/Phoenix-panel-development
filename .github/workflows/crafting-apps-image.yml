@@ -1,0 +1,71 @@
+---
+name: Build and publish crafting-apps image
+
+"on":
+  push:
+    branches:
+      - main
+    paths:
+      - "eggs/crafting-apps/**"
+      - ".github/workflows/crafting-apps-image.yml"
+  pull_request:
+    paths:
+      - "eggs/crafting-apps/**"
+      - ".github/workflows/crafting-apps-image.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  packages: write
+
+env:
+  IMAGE: ghcr.io/ttgdevx/crafting-apps
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Log in to GHCR
+        if: github.event_name != 'pull_request'
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GHCR_TOKEN }}
+
+      - name: Short SHA tag
+        id: sha
+        run: echo "short=${GITHUB_SHA::7}" >> "$GITHUB_OUTPUT"
+
+      - name: Publish flags
+        id: publish
+        run: |
+          if [ "${{ github.event_name }}" = "pull_request" ]; then
+            echo "push=false" >> "$GITHUB_OUTPUT"
+          elif [ "${{ github.ref }}" != "refs/heads/main" ]; then
+            echo "push=false" >> "$GITHUB_OUTPUT"
+          else
+            echo "push=true" >> "$GITHUB_OUTPUT"
+          fi
+          {
+            echo "source=https://github.com/${GITHUB_REPOSITORY}"
+          } >> "$GITHUB_OUTPUT"
+
+      - name: Build and push
+        uses: docker/build-push-action@v6
+        with:
+          context: eggs/crafting-apps
+          file: eggs/crafting-apps/Dockerfile
+          platforms: linux/amd64
+          push: ${{ steps.publish.outputs.push == 'true' }}
+          tags: |
+            ${{ env.IMAGE }}:latest
+            ${{ env.IMAGE }}:${{ steps.sha.outputs.short }}
+          labels: |
+            org.opencontainers.image.source=${{ steps.publish.outputs.source }}

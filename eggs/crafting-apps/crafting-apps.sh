@@ -506,14 +506,14 @@ start_native() {
     die "Xvfb, x11vnc, and websockify must be installed for MODE=native"
   fi
   novnc_web=""
-  for novnc_web in /usr/share/novnc /usr/share/novnc/www; do
+  for novnc_web in /opt/novnc /usr/share/novnc /usr/share/novnc/www; do
     if [[ -f "${novnc_web}/vnc.html" ]]; then
       break
     fi
     novnc_web=""
   done
   if [[ -z "$novnc_web" ]]; then
-    die "noVNC vnc.html was not found under /usr/share/novnc"
+    die "noVNC vnc.html was not found under /opt/novnc or /usr/share/novnc"
   fi
 
   mkdir -p "${ROOT}/.logs" "${ROOT}/.xdg"
@@ -525,7 +525,7 @@ start_native() {
   export DISPLAY=:99
 
   # ponytail: fixed 1280x800 virtual screen. Upgrade path: an egg variable if a different size is needed.
-  # ponytail: bookworm novnc + websockify + x11vnc. Upgrade path: a newer noVNC tree if the bundled client is too old.
+  # ponytail: pinned upstream noVNC in /opt/novnc + bookworm websockify + x11vnc. Upgrade path: bump NOVNC_VERSION in the Dockerfile.
   Xvfb :99 -screen 0 1280x800x24 -ac +extension GLX +render -noreset >"${ROOT}/.logs/xvfb.log" 2>&1 &
   xvfb_pid=$!
   pids+=("$xvfb_pid")

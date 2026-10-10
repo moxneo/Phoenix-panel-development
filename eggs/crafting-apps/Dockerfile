@@ -5,7 +5,7 @@
 FROM debian:bookworm-slim
 
 # GPU device nodes are optional. vulkan-loader (libvulkan1) is installed either way.
-# ponytail: bookworm novnc/websockify/x11vnc and mesa lavapipe. Upgrade path: newer noVNC
+# ponytail: upstream noVNC (/opt/novnc), bookworm websockify/x11vnc and mesa lavapipe. Upgrade path: bump NOVNC_VERSION
 # or a vendor Vulkan ICD when the host GPU should win over llvmpipe.
 RUN apt-get update && DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends \
         bash \
@@ -39,7 +39,6 @@ RUN apt-get update && DEBIAN_FRONTEND=noninteractive apt-get install -y --no-ins
         libasound2 \
         xvfb \
         x11vnc \
-        novnc \
         python3 \
         python3-websockify \
     && rm -rf /var/lib/apt/lists/*
@@ -52,6 +51,18 @@ RUN curl -fsSL -A "crafting-apps-egg/1.0" -o /tmp/caddy.tar.gz \
     && tar -C /usr/local/bin -xzf /tmp/caddy.tar.gz caddy \
     && chmod 0755 /usr/local/bin/caddy \
     && rm /tmp/caddy.tar.gz
+
+# noVNC web client from upstream: bookworm's 1.3 package fails in current
+# Safari/Brave ("Script error."). websockify stays the bookworm python3 package.
+ARG NOVNC_VERSION=1.7.0
+ARG NOVNC_SHA256=b1003a11b6e6e8d8f7f5e5586daae7f8ca651d8aee0aa155ff9ac841c48f52c6
+RUN curl -fsSL -A "crafting-apps-egg/1.0" -o /tmp/novnc.tar.gz \
+        "https://github.com/novnc/noVNC/archive/refs/tags/v${NOVNC_VERSION}.tar.gz" \
+    && echo "${NOVNC_SHA256}  /tmp/novnc.tar.gz" | sha256sum -c - \
+    && mkdir -p /opt/novnc \
+    && tar -C /opt/novnc --strip-components=1 -xzf /tmp/novnc.tar.gz \
+    && test -f /opt/novnc/vnc.html \
+    && rm /tmp/novnc.tar.gz
 
 COPY crafting-apps.sh /usr/local/bin/crafting-apps
 RUN chmod 0755 /usr/local/bin/crafting-apps

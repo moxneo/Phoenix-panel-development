@@ -6,7 +6,7 @@
     },
     "exported_at": "2026-10-09T00:00:00+00:00",
     "name": "Crafting Apps",
-    "author": "Scott Moyer",
+    "author": "Mox Neo",
     "description": "Generic Wings egg for the Storytold Crafting Apps (photocraft, vectorcraft, filmcraft, lightcraft, pdfcraft, effectcraft, designcraft). One egg, one server, one app. APP selects the GitHub release; reinstall replaces the served app. MODE=web serves the static wasm build with Caddy on the server allocation. MODE=native runs the Linux GUI under Xvfb and noVNC on that same allocation. No login page. Expose the allocation with Tailscale. Image: ghcr.io/moxneo/crafting-apps:latest (built and published from the crafting-apps repository; see README.md).",
     "features": null,
     "docker_images": {

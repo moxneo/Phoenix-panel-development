@@ -1,0 +1,39 @@
+{
+    "meta": {
+        "version": "PTDL_v2",
+        "update_url": null
+    },
+    "exported_at": "2026-10-10T16:53:25-04:00",
+    "name": "ChromaDB",
+    "author": "Mox Neo",
+    "description": "Reusable Pterodactyl egg for ChromaDB. Runs a persistent Chroma server on the allocation port, stores vectors under /home/container/data, and prepares a local backup script under /home/container/scripts.",
+    "features": null,
+    "docker_images": {
+        "ChromaDB 1.5.3": "chromadb/chroma:1.5.3"
+    },
+    "file_denylist": [
+        ".env",
+        ".env.*",
+        "*.sops.yaml",
+        "secrets/",
+        "id_*",
+        "*.key",
+        "*.pem"
+    ],
+    "startup": "bash -lc 'mkdir -p /home/container/data /home/container/scripts /home/container/backups && exec chroma run --host 0.0.0.0 --port {{SERVER_PORT}} --path /home/container/data'",
+    "config": {
+        "files": "{}",
+        "startup": "{\"done\": \"Uvicorn running on\"}",
+        "logs": "{}",
+        "stop": "^C"
+    },
+    "scripts": {
+        "installation": {
+            "script": "#!/bin/sh\nset -eu\nmkdir -p /mnt/server/data /mnt/server/scripts /mnt/server/backups\ncat > /mnt/server/scripts/chromadb-backup.sh <<'EOF'\n#!/bin/sh\nset -eu\nSTAMP=\"$(date -u +%Y%m%dT%H%M%SZ)\"\nOUT=\"/home/container/backups/chromadb-${STAMP}.tar.gz\"\nmkdir -p /home/container/backups\ntar -C /home/container -czf \"$OUT\" data\necho \"backup_created=$OUT\"\nEOF\nchmod 0755 /mnt/server/scripts/chromadb-backup.sh\necho 'ChromaDB install prep complete.'\n",
+            "container": "alpine:3.19",
+            "entrypoint": "sh"
+        }
+    },
+    "variables": [],
+    "icon": null
+}

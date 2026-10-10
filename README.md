@@ -39,6 +39,18 @@ I am building this in the open, one piece at a time. If it is useful to you, I w
 
 — Mox Neo
 
+## Public release eggs
+
+Seven more eggs are published under [`eggs/`](eggs/):
+
+- **Hermes Agent v3**: dashboard-first Hermes Agent on Debian 12 (amd64 and arm64); a random admin password is generated on first start and must be changed at first login. [`eggs/hermes-agent-v3/`](eggs/hermes-agent-v3/)
+- **Invoice Ninja v5 (Octane)**: self-hosted invoicing and billing app on Octane/FrankenPHP, with all writable data kept in `/home/container`. Its image, `ghcr.io/moxneo/invoice-ninja:latest`, is not published yet. [`eggs/invoice-ninja/`](eggs/invoice-ninja/)
+- **Listmonk**: self-hosted newsletter and mailing-list manager, using the official image and an external PostgreSQL database. [`eggs/listmonk/`](eggs/listmonk/)
+- **Tailscale gateway**: runs the official Tailscale container as a userspace gateway node that joins your tailnet. [`eggs/tailscale-gateway/`](eggs/tailscale-gateway/)
+- **Cloudflare tunnel**: outbound-only Cloudflare Tunnel connector (pinned, checksum-verified `cloudflared`) that publishes no ports. [`eggs/cloudflare-tunnel/`](eggs/cloudflare-tunnel/)
+- **Odoo (External DB)**: Odoo 16/17/18 ERP and business apps against an external PostgreSQL server, with optional Git-based custom addons. [`eggs/odoo/`](eggs/odoo/)
+- **ChromaDB**: persistent ChromaDB vector database server on the allocation port, with a local backup script. [`eggs/chromadb/`](eggs/chromadb/)
+
 ## Repository layout
 
 - [`eggs/crafting-apps/`](eggs/crafting-apps/): Crafting Apps egg, image Dockerfile, install/start script, and technical documentation.

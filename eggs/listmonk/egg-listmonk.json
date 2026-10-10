@@ -1,0 +1,153 @@
+{
+    "meta": {
+        "version": "PTDL_v2",
+        "update_url": null
+    },
+    "exported_at": "2026-10-10T16:53:25-04:00",
+    "name": "Listmonk",
+    "author": "Mox Neo",
+    "description": "Self-hosted newsletter and mailing-list manager using the official Listmonk image and an external PostgreSQL database.",
+    "features": null,
+    "docker_images": {
+        "Listmonk Latest": "listmonk/listmonk:latest",
+        "Listmonk 6.1.0": "listmonk/listmonk:v6.1.0"
+    },
+    "file_denylist": [],
+    "startup": "export LISTMONK_app__address=0.0.0.0:{{SERVER_PORT}}; /listmonk/listmonk --install --idempotent --yes --config=\"\" && /listmonk/listmonk --upgrade --yes --config=\"\" && exec /listmonk/listmonk --config=\"\"",
+    "config": {
+        "files": "{}",
+        "startup": "{\r\n  \"done\": \"listening on\"\r\n}",
+        "logs": "{}",
+        "stop": "^C"
+    },
+    "scripts": {
+        "installation": {
+            "script": "#!/bin/bash\nset -e\nmkdir -p /mnt/server/uploads\ncat > /mnt/server/README-PTERODACTYL.txt <<'EOF'\nListmonk requires an external PostgreSQL 12 or newer database.\nSet the database variables in the Pterodactyl Startup tab.\nAfter starting, configure filesystem media uploads as:\n/home/container/uploads\nEOF\necho 'Listmonk server files prepared.'",
+            "container": "ghcr.io/ptero-eggs/installers:debian",
+            "entrypoint": "bash"
+        }
+    },
+    "variables": [
+        {
+            "name": "Database Connection Lifetime",
+            "description": "Maximum lifetime of a database connection, such as 300s.",
+            "env_variable": "LISTMONK_db__max_lifetime",
+            "default_value": "300s",
+            "user_viewable": true,
+            "user_editable": true,
+            "rules": "required|string|max:32",
+            "field_type": "text"
+        },
+        {
+            "name": "Database Maximum Idle Connections",
+            "description": "Maximum number of idle PostgreSQL connections.",
+            "env_variable": "LISTMONK_db__max_idle",
+            "default_value": "25",
+            "user_viewable": true,
+            "user_editable": true,
+            "rules": "required|integer|min:1|max:500",
+            "field_type": "text"
+        },
+        {
+            "name": "Database Maximum Open Connections",
+            "description": "Maximum number of open PostgreSQL connections.",
+            "env_variable": "LISTMONK_db__max_open",
+            "default_value": "25",
+            "user_viewable": true,
+            "user_editable": true,
+            "rules": "required|integer|min:1|max:500",
+            "field_type": "text"
+        },
+        {
+            "name": "Initial Admin Password",
+            "description": "Initial Super Admin password. Change this before the first start.",
+            "env_variable": "LISTMONK_ADMIN_PASSWORD",
+            "default_value": "",
+            "user_viewable": true,
+            "user_editable": true,
+            "rules": "nullable|string|min:8|max:255",
+            "field_type": "text"
+        },
+        {
+            "name": "Initial Admin Username",
+            "description": "Optional initial Super Admin username. Used only during the first database installation.",
+            "env_variable": "LISTMONK_ADMIN_USER",
+            "default_value": "admin",
+            "user_viewable": true,
+            "user_editable": true,
+            "rules": "nullable|string|max:64",
+            "field_type": "text"
+        },
+        {
+            "name": "PostgreSQL Database",
+            "description": "Database name used by Listmonk.",
+            "env_variable": "LISTMONK_db__database",
+            "default_value": "listmonk",
+            "user_viewable": true,
+            "user_editable": true,
+            "rules": "required|string|max:64",
+            "field_type": "text"
+        },
+        {
+            "name": "PostgreSQL Host",
+            "description": "Hostname or IP address of the PostgreSQL server.",
+            "env_variable": "LISTMONK_db__host",
+            "default_value": "127.0.0.1",
+            "user_viewable": true,
+            "user_editable": true,
+            "rules": "required|string|max:255",
+            "field_type": "text"
+        },
+        {
+            "name": "PostgreSQL Password",
+            "description": "Password for the PostgreSQL account.",
+            "env_variable": "LISTMONK_db__password",
+            "default_value": "",
+            "user_viewable": true,
+            "user_editable": true,
+            "rules": "required|string|max:255",
+            "field_type": "text"
+        },
+        {
+            "name": "PostgreSQL Port",
+            "description": "PostgreSQL listening port.",
+            "env_variable": "LISTMONK_db__port",
+            "default_value": "5432",
+            "user_viewable": true,
+            "user_editable": true,
+            "rules": "required|integer|between:1,65535",
+            "field_type": "text"
+        },
+        {
+            "name": "PostgreSQL SSL Mode",
+            "description": "Use disable for a trusted private network, or require/verify-full when PostgreSQL is configured for TLS.",
+            "env_variable": "LISTMONK_db__ssl_mode",
+            "default_value": "disable",
+            "user_viewable": true,
+            "user_editable": true,
+            "rules": "required|string|in:disable,allow,prefer,require,verify-ca,verify-full",
+            "field_type": "text"
+        },
+        {
+            "name": "PostgreSQL User",
+            "description": "PostgreSQL account used by Listmonk.",
+            "env_variable": "LISTMONK_db__user",
+            "default_value": "listmonk",
+            "user_viewable": true,
+            "user_editable": true,
+            "rules": "required|string|max:64",
+            "field_type": "text"
+        },
+        {
+            "name": "Timezone",
+            "description": "Container timezone, for example America/Toronto.",
+            "env_variable": "TZ",
+            "default_value": "UTC",
+            "user_viewable": true,
+            "user_editable": true,
+            "rules": "required|string|max:64",
+            "field_type": "text"
+        }
+    ],
+    "icon": null
+}

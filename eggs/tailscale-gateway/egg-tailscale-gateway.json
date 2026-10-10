@@ -1,0 +1,82 @@
+{
+    "meta": {
+        "version": "PTDL_v2",
+        "update_url": null
+    },
+    "exported_at": "2026-10-10T16:53:25-04:00",
+    "name": "Tailscale gateway",
+    "author": "Mox Neo",
+    "description": "Runs the official Tailscale container (containerboot) as a userspace gateway node. Set TS_AUTHKEY to join your tailnet.",
+    "features": [],
+    "docker_images": {
+        "Default": "tailscale/tailscale"
+    },
+    "file_denylist": [],
+    "startup": "/usr/local/bin/containerboot",
+    "config": {
+        "files": "{}",
+        "startup": "{}",
+        "logs": null,
+        "stop": null
+    },
+    "scripts": {
+        "installation": {
+            "script": null,
+            "container": "alpine:3.4",
+            "entrypoint": "ash"
+        }
+    },
+    "variables": [
+        {
+            "name": "TS_AUTH_ONCE",
+            "description": "",
+            "env_variable": "TS_AUTH_ONCE",
+            "default_value": "true",
+            "user_viewable": true,
+            "user_editable": true,
+            "rules": "",
+            "field_type": "text"
+        },
+        {
+            "name": "TS_AUTHKEY",
+            "description": "",
+            "env_variable": "TS_AUTHKEY",
+            "default_value": "",
+            "user_viewable": true,
+            "user_editable": true,
+            "rules": "",
+            "field_type": "text"
+        },
+        {
+            "name": "TS_EXTRA_ARGS",
+            "description": "",
+            "env_variable": "TS_EXTRA_ARGS",
+            "default_value": "",
+            "user_viewable": true,
+            "user_editable": true,
+            "rules": "",
+            "field_type": "text"
+        },
+        {
+            "name": "TS_HOSTNAME",
+            "description": "",
+            "env_variable": "TS_HOSTNAME",
+            "default_value": "panel-gw",
+            "user_viewable": true,
+            "user_editable": true,
+            "rules": "",
+            "field_type": "text"
+        },
+        {
+            "name": "TS_STATE_DIR",
+            "description": "",
+            "env_variable": "TS_STATE_DIR",
+            "default_value": "/home/container/state",
+            "user_viewable": true,
+            "user_editable": true,
+            "rules": "",
+            "field_type": "text"
+        }
+    ],
+    "icon": null
+}

@@ -1,0 +1,202 @@
+{
+    "meta": {
+        "version": "PTDL_v2",
+        "update_url": null
+    },
+    "exported_at": "2026-10-10T16:53:25-04:00",
+    "name": "Odoo (External DB)",
+    "author": "Mox Neo",
+    "description": "Odoo (16/17/18) with external PostgreSQL support. Generates odoo.conf on boot, supports optional Git-based custom addons, and is proxy-friendly for Cloudflare/Tailscale setups.",
+    "features": [],
+    "docker_images": {
+        "ODOO": "ghcr.io/scriptjunkiedev/ptero-odoo:odoo-16-sha-d42b22c2baeced2fb33366fa2d1c8c8bb86c3b82"
+    },
+    "file_denylist": [],
+    "startup": "bash /home/container/start.sh",
+    "config": {
+        "files": "{}",
+        "startup": "{\r\n    \"done\": \"Odoo\"\r\n}",
+        "logs": "{}",
+        "stop": "^C"
+    },
+    "scripts": {
+        "installation": {
+            "script": "#!/bin/bash\r\nset -euo pipefail\r\n\r\necho \"[INSTALL] Installing Odoo egg files (no OS package installs here).\"\r\necho \"[INSTALL] NOTE: Your server Docker image MUST already include the 'odoo' binary.\"\r\n\r\ncd /mnt/server\r\n\r\n# Persistent dirs (map to /home/container at runtime)\r\nmkdir -p data addons logs\r\n\r\necho \"[INSTALL] Writing /mnt/server/start.sh ...\"\r\ncat > /mnt/server/start.sh <<'EOF'\r\n#!/bin/sh\r\nset -eu\r\n\r\ncd /home/container\r\n\r\n# Ensure persistent folders exist\r\nmkdir -p data addons logs\r\n\r\necho \"[Odoo] Starting...\"\r\necho \"[Odoo] DB_HOST=${DB_HOST:-} DB_PORT=${DB_PORT:-} DB_USER=${DB_USER:-} DBFILTER=${ODOO_DB_FILTER:-}\"\r\n\r\nexec odoo --config /home/container/odoo.conf\r\nEOF\r\nchmod +x /mnt/server/start.sh\r\n\r\n# Write config template (env-substituted at install time)\r\n# If you want runtime-dynamic values, generate this file in start.sh instead.\r\necho \"[INSTALL] Writing /mnt/server/odoo.conf ...\"\r\ncat > /mnt/server/odoo.conf <<CFG\r\n[options]\r\nadmin_passwd = ${ODOO_ADMIN_PASSWD}\r\nhttp_port = 8069\r\nxmlrpc_interface = 0.0.0.0\r\nproxy_mode = ${ODOO_PROXY_MODE}\r\nlog_level = ${ODOO_LOG_LEVEL}\r\n\r\ndb_host = ${DB_HOST}\r\ndb_port = ${DB_PORT}\r\ndb_user = ${DB_USER}\r\ndb_password = ${DB_PASSWORD}\r\ndbfilter = ${ODOO_DB_FILTER:-.*}\r\n\r\ndata_dir = /home/container/data\r\naddons_path = /usr/lib/python3/dist-packages/odoo/addons,/home/container/addons\r\n\r\nlogfile = /home/container/logs/odoo.log\r\nCFG\r\n\r\necho \"[INSTALL] Done.\"",
+            "container": "debian:12-slim",
+            "entrypoint": "sh"
+        }
+    },
+    "variables": [
+        {
+            "name": "Addons Git Auto Pull",
+            "description": "If true, pulls latest addons on each start (dev).",
+            "env_variable": "ADDONS_GIT_AUTO_PULL",
+            "default_value": "false",
+            "user_viewable": true,
+            "user_editable": true,
+            "rules": "required|in:true,false",
+            "field_type": "text"
+        },
+        {
+            "name": "Addons Git Branch",
+            "description": "Branch for addons repo.",
+            "env_variable": "ADDONS_GIT_BRANCH",
+            "default_value": "main",
+            "user_viewable": true,
+            "user_editable": true,
+            "rules": "required|string|max:64",
+            "field_type": "text"
+        },
+        {
+            "name": "Addons Git Repo (optional)",
+            "description": "Optional. Git URL for custom addons repo (HTTPS/SSH).",
+            "env_variable": "ADDONS_GIT_REPO",
+            "default_value": "",
+            "user_viewable": true,
+            "user_editable": true,
+            "rules": "sometimes|nullable|string|max:255",
+            "field_type": "text"
+        },
+        {
+            "name": "CPU Time Limit (seconds)",
+            "description": "0 disables.",
+            "env_variable": "ODOO_LIMIT_TIME_CPU",
+            "default_value": "0",
+            "user_viewable": true,
+            "user_editable": true,
+            "rules": "required|integer|min:0",
+            "field_type": "text"
+        },
+        {
+            "name": "DB Host",
+            "description": "External PostgreSQL host (LAN IP or Tailscale IP).",
+            "env_variable": "DB_HOST",
+            "default_value": "",
+            "user_viewable": true,
+            "user_editable": true,
+            "rules": "required|string|max:255",
+            "field_type": "text"
+        },
+        {
+            "name": "DB Name",
+            "description": "",
+            "env_variable": "DB_NAME",
+            "default_value": "odoo",
+            "user_viewable": false,
+            "user_editable": false,
+            "rules": "required|string|max:20",
+            "field_type": "text"
+        },
+        {
+            "name": "DB Password",
+            "description": "Password for DB user. CHANGE THIS PER SERVER.",
+            "env_variable": "DB_PASSWORD",
+            "default_value": "",
+            "user_viewable": true,
+            "user_editable": true,
+            "rules": "required|string|max:255",
+            "field_type": "text"
+        },
+        {
+            "name": "DB Port",
+            "description": "PostgreSQL port (usually 5432).",
+            "env_variable": "DB_PORT",
+            "default_value": "5432",
+            "user_viewable": true,
+            "user_editable": true,
+            "rules": "required|integer",
+            "field_type": "text"
+        },
+        {
+            "name": "DB User",
+            "description": "PostgreSQL user for Odoo.",
+            "env_variable": "DB_USER",
+            "default_value": "odoo_user",
+            "user_viewable": true,
+            "user_editable": true,
+            "rules": "required|string|max:64",
+            "field_type": "text"
+        },
+        {
+            "name": "Log Level",
+            "description": "info, debug, warn, error",
+            "env_variable": "ODOO_LOG_LEVEL",
+            "default_value": "info",
+            "user_viewable": true,
+            "user_editable": true,
+            "rules": "required|in:debug,info,warn,error",
+            "field_type": "text"
+        },
+        {
+            "name": "Max Cron Threads",
+            "description": "Background jobs. 1 is safe for small installs.",
+            "env_variable": "ODOO_MAX_CRON_THREADS",
+            "default_value": "1",
+            "user_viewable": true,
+            "user_editable": true,
+            "rules": "required|integer|min:1|max:16",
+            "field_type": "text"
+        },
+        {
+            "name": "Memory Hard Limit (bytes)",
+            "description": "0 disables. Example: 2147483648 = 2GiB.",
+            "env_variable": "ODOO_LIMIT_MEMORY_HARD",
+            "default_value": "0",
+            "user_viewable": true,
+            "user_editable": true,
+            "rules": "required|integer|min:0",
+            "field_type": "text"
+        },
+        {
+            "name": "Memory Soft Limit (bytes)",
+            "description": "0 disables. Example: 1073741824 = 1GiB.",
+            "env_variable": "ODOO_LIMIT_MEMORY_SOFT",
+            "default_value": "0",
+            "user_viewable": true,
+            "user_editable": true,
+            "rules": "required|integer|min:0",
+            "field_type": "text"
+        },
+        {
+            "name": "Odoo Master Password (admin_passwd)",
+            "description": "Required. Odoo DB manager master password (NOT your normal Odoo login). CHANGE THIS PER SERVER.",
+            "env_variable": "ODOO_ADMIN_PASSWD",
+            "default_value": "",
+            "user_viewable": true,
+            "user_editable": true,
+            "rules": "required|string|min:12|max:128",
+            "field_type": "text"
+        },
+        {
+            "name": "Proxy Mode",
+            "description": "true when behind Cloudflare/Tunnel/Reverse Proxy.",
+            "env_variable": "ODOO_PROXY_MODE",
+            "default_value": "true",
+            "user_viewable": true,
+            "user_editable": true,
+            "rules": "required|in:true,false",
+            "field_type": "text"
+        },
+        {
+            "name": "Real Time Limit (seconds)",
+            "description": "0 disables.",
+            "env_variable": "ODOO_LIMIT_TIME_REAL",
+            "default_value": "0",
+            "user_viewable": true,
+            "user_editable": true,
+            "rules": "required|integer|min:0",
+            "field_type": "text"
+        },
+        {
+            "name": "Workers",
+            "description": "0 = single-process (simple).",
+            "env_variable": "ODOO_WORKERS",
+            "default_value": "0",
+            "user_viewable": true,
+            "user_editable": true,
+            "rules": "required|integer|min:0|max:64",
+            "field_type": "text"
+        }
+    ],
+    "icon": null
+}

@@ -1,0 +1,39 @@
+{
+    "meta": {
+        "version": "PTDL_v2",
+        "update_url": null
+    },
+    "exported_at": "2026-10-10T16:53:25-04:00",
+    "name": "Cloudflare tunnel",
+    "author": "Mox Neo",
+    "description": "Join-only token connector. It dials out only and does not publish 80 or 443.",
+    "features": [],
+    "docker_images": {
+        "Debian": "ghcr.io/parkervcp/yolks:debian"
+    },
+    "file_denylist": [],
+    "startup": "/home/container/cloudflared --no-autoupdate tunnel run",
+    "config": {
+        "files": {},
+        "startup": {},
+        "stop": ""
+    },
+    "variables": [
+        {
+            "name": "TUNNEL_TOKEN",
+            "env_variable": "TUNNEL_TOKEN",
+            "default_value": "",
+            "user_viewable": true,
+            "user_editable": true,
+            "rules": "",
+            "field_type": "text"
+        }
+    ],
+    "scripts": {
+        "installation": {
+            "script": "#!/bin/ash\nset -eu\narch=$(uname -m)\ncase \"$arch\" in\n  x86_64)\n    asset=cloudflared-linux-amd64\n    sum=77e26d8d900e0b8469f416239d14b5f296525fdf79fee6f511ef55609e3fbac2\n    ;;\n  aarch64)\n    asset=cloudflared-linux-arm64\n    sum=aaeb2d7d0da3614634c7e03ab13487a1522c2e79165ed2929cfe23d5e95b326d\n    ;;\n  *)\n    echo \"unsupported architecture: $arch\" >&2\n    exit 1\n    ;;\nesac\ncurl -fsSL -o /mnt/server/cloudflared \"https://github.com/cloudflare/cloudflared/releases/download/2026.9.3/${asset}\"\necho \"${sum}  /mnt/server/cloudflared\" | sha256sum -c -\nchmod 755 /mnt/server/cloudflared\n",
+            "container": "ghcr.io/pterodactyl/installers:alpine",
+            "entrypoint": "ash"
+        }
+    }
+}

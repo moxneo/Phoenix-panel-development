@@ -1,0 +1,62 @@
+{
+    "meta": {
+        "version": "PTDL_v2",
+        "update_url": null
+    },
+    "exported_at": "2026-10-10T16:53:25-04:00",
+    "name": "Hermes Agent v3",
+    "author": "Mox Neo",
+    "description": "Hermes Agent v3 on Debian 12 (glibc 2.36, linux/amd64+arm64). Dashboard-first; per-server first login; no Panel keys. No Tailscale.",
+    "features": null,
+    "docker_images": {
+        "Debian 12": "ghcr.io/ptero-eggs/yolks:debian"
+    },
+    "file_denylist": [],
+    "startup": "bash /home/container/start.sh",
+    "config": {
+        "files": "{}",
+        "startup": "{\"done\": \"[hermes] ready\", \"userInteraction\": []}",
+        "logs": "{}",
+        "stop": "^C"
+    },
+    "scripts": {
+        "installation": {
+            "script": "#!/bin/bash\nset -euo pipefail\ncd /mnt/server\n\n# Fail loud on unsupported arch (install container).\n_m=$(uname -m)\ncase \"$_m\" in\n  x86_64|amd64) _a=amd64 ;;\n  aarch64|arm64) _a=arm64 ;;\n  *) echo \"[hermes] unsupported arch: ${_m}\"; exit 1 ;;\nesac\necho \"[hermes] install arch=${_a} uname=${_m}\"\n\ncat > start.sh << 'EOF'\n#!/bin/bash\nset -euo pipefail\n_m=$(uname -m)\ncase \"$_m\" in\n  x86_64|amd64) HERMES_ARCH=amd64 ;;\n  aarch64|arm64) HERMES_ARCH=arm64 ;;\n  *) echo \"[hermes] unsupported arch: ${_m}\"; exit 1 ;;\nesac\necho \"[hermes] arch=${HERMES_ARCH} uname=${_m}\"\n\nexport HOME=/home/container\nexport HERMES_HOME=/home/container/.hermes\nexport PATH=\"$HERMES_HOME/bin:$HOME/.local/bin:$PATH\"\nexport TMPDIR=\"$HERMES_HOME/cache/scratch\"\ncd /home/container\nmkdir -p \"$HERMES_HOME\" \"$HOME/.local/bin\" \"$TMPDIR\"\numask 077\ntouch \"$HERMES_HOME/.env\"\nchmod 600 \"$HERMES_HOME/.env\"\n\n# ENABLE_*=0|1. Default on. Panel does not rewrite .env (UI owns it).\n# SERVER_PORT and HERMES_ENABLE_DASHBOARD are read here every start.\nflag_on() { [ \"${1:-0}\" = \"1\" ]; }\n\nif ! command -v hermes >/dev/null 2>&1; then\n  HERMES_VERSION=\"${HERMES_VERSION:-v2026.9.24}\"\n  echo \"[hermes] installing ${HERMES_VERSION} arch=${HERMES_ARCH}\"\n  INSTALL_SH=\"${TMPDIR}/hermes-install.sh\"\n  curl -fsSL \"https://raw.githubusercontent.com/NousResearch/hermes-agent/${HERMES_VERSION}/scripts/install.sh\" -o \"$INSTALL_SH\"\n  chmod +x \"$INSTALL_SH\"\n  args=(--skip-setup --skip-browser --hermes-home \"$HERMES_HOME\" --dir \"$HERMES_HOME/hermes-agent\")\n  if [[ \"$HERMES_VERSION\" =~ ^[0-9a-fA-F]{7,40}$ ]]; then\n    args+=(--commit \"$HERMES_VERSION\")\n  else\n    args+=(--branch \"$HERMES_VERSION\")\n  fi\n  bash \"$INSTALL_SH\" \"${args[@]}\"\n  export PATH=\"$HERMES_HOME/bin:$HOME/.local/bin:$PATH\"\n  if [ ! -d \"$HERMES_HOME/hermes-agent\" ]; then\n    echo \"[hermes] hermes-agent dir missing after install\"\n    exit 1\n  fi\n  if [ ! -x \"$HERMES_HOME/bin/uv\" ]; then\n    echo \"[hermes] uv missing at $HERMES_HOME/bin/uv\"\n    exit 1\n  fi\n  echo \"[hermes] installing dashboard extra [web]\"\n  (\n    cd \"$HERMES_HOME/hermes-agent\"\n    VIRTUAL_ENV=\"$HERMES_HOME/hermes-agent/venv\" uv pip install -e \".[web]\"\n  )\nfi\n\nif ! command -v hermes >/dev/null 2>&1; then\n  echo \"[hermes] binary missing PATH=$PATH\"\n  exit 1\nfi\n\n# First boot always seeds the local custom model. Upstream config.yaml already\n# sets model.default (anthropic/claude-opus-4.6), so do not key off that value.\n# Later starts: V3_MODEL_SEEDED means the UI owns these three keys.\nif [ ! -f \"$HERMES_HOME/V3_MODEL_SEEDED\" ]; then\n  echo \"[hermes] seeding model.provider=custom model.default=local\"\n  hermes config set model.provider custom\n  hermes config set model.default local\n  hermes config set model.base_url http://127.0.0.1:8080/v1\n  : > \"$HERMES_HOME/V3_MODEL_SEEDED\"\n  chmod 600 \"$HERMES_HOME/V3_MODEL_SEEDED\"\nfi\n\nfor bin in hermes hermes-agent hermes-acp; do\n  if ! command -v \"$bin\" >/dev/null 2>&1 && [ ! -x \"$HOME/.local/bin/$bin\" ]; then\n    echo \"[hermes] launcher missing: $bin\"\n    exit 1\n  fi\ndone\n\nif flag_on \"${HERMES_ENABLE_DASHBOARD:-1}\"; then\n  if [ -z \"${SERVER_PORT:-}\" ]; then\n    echo \"[hermes] dashboard ENABLE=1 needs SERVER_PORT\"\n    exit 1\n  fi\nfi\n\n# Seed dashboard auth only when the password is absent. Never overwrite later.\n_pw_line=$(grep -E '^HERMES_DASHBOARD_BASIC_AUTH_PASSWORD=' \"$HERMES_HOME/.env\" | tail -n 1 || true)\n_pw_val=${_pw_line#HERMES_DASHBOARD_BASIC_AUTH_PASSWORD=}\n_pw_val=${_pw_val#\\\"}\n_pw_val=${_pw_val%\\\"}\n_pw_val=${_pw_val#\\'}\n_pw_val=${_pw_val%\\'}\nif [ -z \"$_pw_val\" ]; then\n  if command -v openssl >/dev/null 2>&1; then\n    _pw=$(openssl rand -hex 16)\n    _secret=$(openssl rand -hex 32)\n  else\n    _pw=$(python3 -c 'import os; print(os.urandom(16).hex())')\n    _secret=$(python3 -c 'import os; print(os.urandom(32).hex())')\n  fi\n  if [ \"${#_pw}\" -lt 20 ] || [ \"${#_secret}\" -lt 32 ]; then\n    echo \"[hermes] failed to generate dashboard auth\"\n    exit 1\n  fi\n  set_env_key() {\n    local key=\"$1\" val=\"$2\" tmp\n    tmp=\"$HERMES_HOME/.env.tmp\"\n    grep -v \"^${key}=\" \"$HERMES_HOME/.env\" > \"$tmp\" || true\n    printf '%s=%s\\n' \"$key\" \"$val\" >> \"$tmp\"\n    mv \"$tmp\" \"$HERMES_HOME/.env\"\n    chmod 600 \"$HERMES_HOME/.env\"\n  }\n  set_env_key HERMES_DASHBOARD_BASIC_AUTH_USERNAME admin\n  set_env_key HERMES_DASHBOARD_BASIC_AUTH_PASSWORD \"$_pw\"\n  set_env_key HERMES_DASHBOARD_BASIC_AUTH_SECRET \"$_secret\"\n  _login=\"[hermes] FIRST LOGIN user=admin password=${_pw}\"\n  printf '%s\\n' \"$_login\" > /home/container/FIRST_LOGIN.txt\n  chmod 600 /home/container/FIRST_LOGIN.txt\n  : > \"$HERMES_HOME/MUST_CHANGE_PASSWORD\"\n  chmod 600 \"$HERMES_HOME/MUST_CHANGE_PASSWORD\"\n  printf '%s\\n' \"$_login\"\nfi\nunset _pw _secret _pw_line _pw_val _login || true\n\nif ! flag_on \"${HERMES_ENABLE_DASHBOARD:-1}\"; then\n  echo \"[hermes] ready\"\n  exec hermes gateway run\nfi\n\nif [ -f \"$HERMES_HOME/MUST_CHANGE_PASSWORD\" ]; then\n  echo \"[hermes] set a new password at 0.0.0.0:${SERVER_PORT} (twice, min 12 chars)\"\n  if command -v python3 >/dev/null 2>&1; then\n    _py=python3\n  elif [ -x \"$HERMES_HOME/hermes-agent/venv/bin/python\" ]; then\n    _py=\"$HERMES_HOME/hermes-agent/venv/bin/python\"\n  else\n    echo \"[hermes] python3 missing\"\n    exit 1\n  fi\n  \"$_py\" - << 'PY'\nimport os\nimport threading\nfrom http.server import BaseHTTPRequestHandler, HTTPServer\nfrom urllib.parse import parse_qs\n\nHERMES_HOME = os.environ[\"HERMES_HOME\"]\nENV_PATH = os.path.join(HERMES_HOME, \".env\")\nMARKER = os.path.join(HERMES_HOME, \"MUST_CHANGE_PASSWORD\")\nFIRST_LOGIN = \"/home/container/FIRST_LOGIN.txt\"\nPORT = int(os.environ[\"SERVER_PORT\"])\nUSER_KEY = \"HERMES_DASHBOARD_BASIC_AUTH_USERNAME\"\nPASS_KEY = \"HERMES_DASHBOARD_BASIC_AUTH_PASSWORD\"\n\nPAGE = \"\"\"<!DOCTYPE html>\n<html><head><meta charset=\"utf-8\"><title>Hermes password</title></head>\n<body>\n<h1>Set a new password</h1>\n<p>{msg}</p>\n<form method=\"post\" action=\"/\">\n<label>New password <input type=\"password\" name=\"password\" required minlength=\"12\" autocomplete=\"new-password\"></label><br>\n<label>Confirm password <input type=\"password\" name=\"password2\" required minlength=\"12\" autocomplete=\"new-password\"></label><br>\n<button type=\"submit\">Save</button>\n</form>\n</body></html>\n\"\"\"\n\n\ndef dotenv_quote(value):\n    if any(c in value for c in (\"\\n\", \"\\r\", \"\\x00\")):\n        raise ValueError(\"invalid password\")\n    if \"'\" not in value:\n        return \"'\" + value + \"'\"\n    escaped = value.replace(\"\\\\\", \"\\\\\\\\\").replace('\"', '\\\\\"').replace(\"$\", \"\\\\$\")\n    return '\"' + escaped + '\"'\n\n\ndef write_env(username, password):\n    lines = []\n    if os.path.exists(ENV_PATH):\n        with open(ENV_PATH, encoding=\"utf-8\") as fh:\n            lines = fh.read().splitlines()\n    updates = {USER_KEY: username, PASS_KEY: dotenv_quote(password)}\n    out = []\n    seen = set()\n    for line in lines:\n        if not line or line.lstrip().startswith(\"#\") or \"=\" not in line:\n            out.append(line)\n            continue\n        key = line.split(\"=\", 1)[0]\n        if key in updates:\n            if key not in seen:\n                out.append(key + \"=\" + updates[key])\n                seen.add(key)\n            continue\n        out.append(line)\n    for key, value in updates.items():\n        if key not in seen:\n            out.append(key + \"=\" + value)\n    tmp = ENV_PATH + \".tmp\"\n    with open(tmp, \"w\", encoding=\"utf-8\") as fh:\n        fh.write(\"\\n\".join(out) + \"\\n\")\n    os.chmod(tmp, 0o600)\n    os.replace(tmp, ENV_PATH)\n    os.chmod(ENV_PATH, 0o600)\n\n\nclass Handler(BaseHTTPRequestHandler):\n    def log_message(self, fmt, *args):\n        return\n\n    def _send(self, code, body):\n        data = body.encode(\"utf-8\")\n        self.send_response(code)\n        self.send_header(\"Content-Type\", \"text/html; charset=utf-8\")\n        self.send_header(\"Content-Length\", str(len(data)))\n        self.send_header(\"Cache-Control\", \"no-store\")\n        self.end_headers()\n        self.wfile.write(data)\n\n    def do_GET(self):\n        self._send(200, PAGE.format(msg=\"Choose a password of at least 12 characters.\"))\n\n    def do_POST(self):\n        try:\n            n = int(self.headers.get(\"Content-Length\", \"0\"))\n        except ValueError:\n            n = 0\n        if n < 0 or n > 8192:\n            self._send(400, PAGE.format(msg=\"Request too large.\"))\n            return\n        raw = self.rfile.read(n).decode(\"utf-8\", \"replace\")\n        form = parse_qs(raw, keep_blank_values=True)\n        pw = (form.get(\"password\") or [\"\"])[0]\n        pw2 = (form.get(\"password2\") or [\"\"])[0]\n        if pw != pw2 or len(pw) < 12 or any(c in pw for c in (\"\\n\", \"\\r\", \"\\x00\")):\n            self._send(400, PAGE.format(msg=\"Passwords must match and be at least 12 characters.\"))\n            return\n        write_env(\"admin\", pw)\n        if os.path.exists(MARKER):\n            os.remove(MARKER)\n        if os.path.exists(FIRST_LOGIN):\n            os.remove(FIRST_LOGIN)\n        self._send(200, \"<!DOCTYPE html><html><body><p>Password saved. Dashboard is starting. Reload this page shortly.</p></body></html>\")\n        threading.Thread(target=self.server.shutdown, daemon=True).start()\n\n\nclass Server(HTTPServer):\n    allow_reuse_address = True\n\n\nhttpd = Server((\"0.0.0.0\", PORT), Handler)\nhttpd.serve_forever()\nPY\nfi\n\necho \"[hermes] ready\"\n# Dashboard is Wings PID 1 so done-regex + stop (^C) attach to it.\nhermes gateway run &\nexec hermes dashboard --host 0.0.0.0 --port \"$SERVER_PORT\" --no-open\nEOF\nchmod +x start.sh\necho \"[hermes] install complete arch=${_a}\"\n",
+            "container": "ghcr.io/ptero-eggs/yolks:debian",
+            "entrypoint": "bash"
+        }
+    },
+    "variables": [
+        {
+            "name": "Enable dashboard",
+            "description": "1=dashboard on SERVER_PORT (0.0.0.0) + gateway in background (default). 0=gateway only.",
+            "env_variable": "HERMES_ENABLE_DASHBOARD",
+            "default_value": "1",
+            "user_viewable": true,
+            "user_editable": true,
+            "rules": "nullable|string|max:8",
+            "field_type": "text"
+        },
+        {
+            "name": "Hermes version",
+            "description": "Git tag or commit. Pin; do not use floating latest. Hidden from the client.",
+            "env_variable": "HERMES_VERSION",
+            "default_value": "v2026.9.24",
+            "user_viewable": false,
+            "user_editable": false,
+            "rules": "required|string|max:64",
+            "field_type": "text"
+        },
+        {
+            "name": "Server port",
+            "description": "Allocation port.",
+            "env_variable": "SERVER_PORT",
+            "default_value": "{{server.build.default.port}}",
+            "user_viewable": true,
+            "user_editable": true,
+            "rules": "required|string|max:20",
+            "field_type": "text"
+        }
+    ],
+    "icon": "/assets/egg-icons/hermes_logo-purple.png"
+}

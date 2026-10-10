@@ -1,0 +1,302 @@
+{
+    "meta": {
+        "version": "PTDL_v2",
+        "update_url": null
+    },
+    "exported_at": "2026-10-10T16:53:25-04:00",
+    "name": "Invoice Ninja v5 (Octane)",
+    "author": "Mox Neo",
+    "description": "Invoice Ninja v5 (Octane/FrankenPHP) image that keeps all writable data in /home/container (portable across nodes). Start Redis first. Use LARAVEL_ROLE=app for web, worker for queues.",
+    "features": [],
+    "docker_images": {
+        "Invoice Ninja - latest": "ghcr.io/moxneo/invoice-ninja:latest"
+    },
+    "file_denylist": [],
+    "startup": "/bin/sh -lc 'exec /usr/local/bin/entrypoint.sh'",
+    "config": {
+        "files": "{}",
+        "startup": "{}",
+        "logs": "{}",
+        "stop": "SIGTERM"
+    },
+    "scripts": {
+        "installation": {
+            "script": "#!/bin/sh\nexit 0\n",
+            "container": "alpine:3.19",
+            "entrypoint": "sh"
+        }
+    },
+    "variables": [
+        {
+            "name": "APP_DEBUG",
+            "description": "false",
+            "env_variable": "APP_DEBUG",
+            "default_value": "false",
+            "user_viewable": true,
+            "user_editable": true,
+            "rules": "required|string|in:true,false,0,1",
+            "field_type": "text"
+        },
+        {
+            "name": "APP_ENV",
+            "description": "production",
+            "env_variable": "APP_ENV",
+            "default_value": "production",
+            "user_viewable": true,
+            "user_editable": true,
+            "rules": "required|string|max:32",
+            "field_type": "text"
+        },
+        {
+            "name": "APP_KEY",
+            "description": "Laravel APP_KEY from your existing install",
+            "env_variable": "APP_KEY",
+            "default_value": "",
+            "user_viewable": true,
+            "user_editable": true,
+            "rules": "required|string",
+            "field_type": "text"
+        },
+        {
+            "name": "APP_NAME",
+            "description": "Laravel application display name. Keep quoted when value contains spaces.",
+            "env_variable": "APP_NAME",
+            "default_value": "\"Invoice Ninja\"",
+            "user_viewable": true,
+            "user_editable": true,
+            "rules": "required|string|max:191",
+            "field_type": "text"
+        },
+        {
+            "name": "APP_URL",
+            "description": "Public URL (ex: https://billing.example.com)",
+            "env_variable": "APP_URL",
+            "default_value": "",
+            "user_viewable": true,
+            "user_editable": true,
+            "rules": "required|string",
+            "field_type": "text"
+        },
+        {
+            "name": "CACHE_DRIVER",
+            "description": "redis",
+            "env_variable": "CACHE_DRIVER",
+            "default_value": "redis",
+            "user_viewable": true,
+            "user_editable": true,
+            "rules": "required|string",
+            "field_type": "text"
+        },
+        {
+            "name": "DB_DATABASE",
+            "description": "DB name",
+            "env_variable": "DB_DATABASE",
+            "default_value": "ninjadb",
+            "user_viewable": true,
+            "user_editable": true,
+            "rules": "required|string",
+            "field_type": "text"
+        },
+        {
+            "name": "DB_HOST",
+            "description": "DB host/IP",
+            "env_variable": "DB_HOST",
+            "default_value": "",
+            "user_viewable": true,
+            "user_editable": true,
+            "rules": "required|string",
+            "field_type": "text"
+        },
+        {
+            "name": "DB_PASSWORD",
+            "description": "DB password",
+            "env_variable": "DB_PASSWORD",
+            "default_value": "",
+            "user_viewable": true,
+            "user_editable": true,
+            "rules": "required|string",
+            "field_type": "text"
+        },
+        {
+            "name": "DB_PORT",
+            "description": "DB port",
+            "env_variable": "DB_PORT",
+            "default_value": "3307",
+            "user_viewable": true,
+            "user_editable": true,
+            "rules": "required|integer",
+            "field_type": "text"
+        },
+        {
+            "name": "DB_TYPE",
+            "description": "mysql for MariaDB/MySQL",
+            "env_variable": "DB_TYPE",
+            "default_value": "mysql",
+            "user_viewable": true,
+            "user_editable": true,
+            "rules": "required|string|in:mysql,pgsql",
+            "field_type": "text"
+        },
+        {
+            "name": "DB_USERNAME",
+            "description": "DB user",
+            "env_variable": "DB_USERNAME",
+            "default_value": "ninja",
+            "user_viewable": true,
+            "user_editable": true,
+            "rules": "required|string",
+            "field_type": "text"
+        },
+        {
+            "name": "Laravel Role",
+            "description": "app=web UI, worker=background jobs, scheduler=cron loop",
+            "env_variable": "LARAVEL_ROLE",
+            "default_value": "app",
+            "user_viewable": true,
+            "user_editable": true,
+            "rules": "required|string|in:app,worker,scheduler",
+            "field_type": "text"
+        },
+        {
+            "name": "MAIL_ENCRYPTION",
+            "description": "",
+            "env_variable": "MAIL_ENCRYPTION",
+            "default_value": "ssl",
+            "user_viewable": true,
+            "user_editable": true,
+            "rules": "required|string|max:20",
+            "field_type": "text"
+        },
+        {
+            "name": "MAIL_FROM_ADDRESS",
+            "description": "",
+            "env_variable": "MAIL_FROM_ADDRESS",
+            "default_value": "",
+            "user_viewable": true,
+            "user_editable": true,
+            "rules": "required|string|max:64",
+            "field_type": "text"
+        },
+        {
+            "name": "MAIL_FROM_NAME",
+            "description": "",
+            "env_variable": "MAIL_FROM_NAME",
+            "default_value": "",
+            "user_viewable": true,
+            "user_editable": true,
+            "rules": "required|string|max:20",
+            "field_type": "text"
+        },
+        {
+            "name": "MAIL_HOST",
+            "description": "",
+            "env_variable": "MAIL_HOST",
+            "default_value": "",
+            "user_viewable": true,
+            "user_editable": true,
+            "rules": "required|string|max:20",
+            "field_type": "text"
+        },
+        {
+            "name": "MAIL_MAILER",
+            "description": "smtp or log",
+            "env_variable": "MAIL_MAILER",
+            "default_value": "smtp",
+            "user_viewable": true,
+            "user_editable": true,
+            "rules": "required|string",
+            "field_type": "text"
+        },
+        {
+            "name": "MAIL_PASSWORD",
+            "description": "",
+            "env_variable": "MAIL_PASSWORD",
+            "default_value": "",
+            "user_viewable": true,
+            "user_editable": true,
+            "rules": "required|string|max:20",
+            "field_type": "text"
+        },
+        {
+            "name": "MAIL_PORT",
+            "description": "",
+            "env_variable": "MAIL_PORT",
+            "default_value": "993",
+            "user_viewable": true,
+            "user_editable": true,
+            "rules": "required|string|max:20",
+            "field_type": "text"
+        },
+        {
+            "name": "MAIL_USERNAME",
+            "description": "",
+            "env_variable": "MAIL_USERNAME",
+            "default_value": "",
+            "user_viewable": true,
+            "user_editable": true,
+            "rules": "required|string|max:64",
+            "field_type": "text"
+        },
+        {
+            "name": "QUEUE_CONNECTION",
+            "description": "redis",
+            "env_variable": "QUEUE_CONNECTION",
+            "default_value": "redis",
+            "user_viewable": true,
+            "user_editable": true,
+            "rules": "required|string",
+            "field_type": "text"
+        },
+        {
+            "name": "REDIS_HOST",
+            "description": "Redis host/IP",
+            "env_variable": "REDIS_HOST",
+            "default_value": "127.0.0.1",
+            "user_viewable": true,
+            "user_editable": true,
+            "rules": "required|string",
+            "field_type": "text"
+        },
+        {
+            "name": "REDIS_PASSWORD",
+            "description": "Redis password (must match Redis requirepass). Leave blank if none.",
+            "env_variable": "REDIS_PASSWORD",
+            "default_value": "",
+            "user_viewable": true,
+            "user_editable": true,
+            "rules": "nullable|string",
+            "field_type": "text"
+        },
+        {
+            "name": "REDIS_PORT",
+            "description": "Redis port (default 6379)",
+            "env_variable": "REDIS_PORT",
+            "default_value": "6379",
+            "user_viewable": true,
+            "user_editable": true,
+            "rules": "required|integer",
+            "field_type": "text"
+        },
+        {
+            "name": "REQUIRE_HTTPS",
+            "description": "Keep false when using a reverse proxy/TLS termination",
+            "env_variable": "REQUIRE_HTTPS",
+            "default_value": "false",
+            "user_viewable": true,
+            "user_editable": true,
+            "rules": "required|string|in:true,false,0,1",
+            "field_type": "text"
+        },
+        {
+            "name": "SESSION_DRIVER",
+            "description": "redis",
+            "env_variable": "SESSION_DRIVER",
+            "default_value": "redis",
+            "user_viewable": true,
+            "user_editable": true,
+            "rules": "required|string",
+            "field_type": "text"
+        }
+    ],
+    "icon": null
+}

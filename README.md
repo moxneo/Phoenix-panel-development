@@ -37,7 +37,7 @@ Crafting Apps is the start. I plan to keep adding business-ready eggs and extens
 
 I am building this in the open, one piece at a time. If it is useful to you, I would be glad to hear about it.
 
-— Scott Moyer
+— Mox Neo
 
 ## Repository layout
 

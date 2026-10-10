@@ -1,6 +1,6 @@
 # Crafting Apps (Phoenix / Wings egg)
 
-This repository is the public source for the Wings container image `ghcr.io/ttgdevx/crafting-apps`. GitHub Actions builds `eggs/crafting-apps/Dockerfile` (workflow `.github/workflows/crafting-apps-image.yml` at the repo root, build context `eggs/crafting-apps`) and publishes to GitHub Container Registry. The egg JSON in this folder points at that image.
+This repository is the public source for the Wings container image `ghcr.io/moxneo/crafting-apps`. GitHub Actions builds `eggs/crafting-apps/Dockerfile` (workflow `.github/workflows/crafting-apps-image.yml` at the repo root, build context `eggs/crafting-apps`) and publishes to GitHub Container Registry. The egg JSON in this folder points at that image.
 
 One egg, one server, one app. The egg installs a Storytold Crafting App chosen by the `APP` startup variable. Change `APP` (or `MODE` / `VERSION`) and reinstall. The same egg and the same script replace the served app. This is not a game egg and it does not copy one.
 
@@ -11,7 +11,7 @@ Access is private. The server listens on the Wings allocation (`${SERVER_PORT}`)
 | File | Role |
 |---|---|
 | `crafting-apps.sh` | Source of truth. Install fetches and unpacks. Start serves. |
-| `Dockerfile` | Builds `ghcr.io/ttgdevx/crafting-apps` (static server, Xvfb, noVNC, native libraries, vulkan-loader). |
+| `Dockerfile` | Builds `ghcr.io/moxneo/crafting-apps` (static server, Xvfb, noVNC, native libraries, vulkan-loader). |
 | `egg-crafting-apps.json` | PTDL_v2 egg. Name: **Crafting Apps**. The install script is `crafting-apps.sh` verbatim. |
 
 Startup command: `/usr/local/bin/crafting-apps start`
@@ -22,11 +22,11 @@ Install container: `debian:bookworm-slim` (the script installs `curl`, `ca-certi
 
 ### Registry image (recommended)
 
-1. In this repository, add a secret named `GHCR_TOKEN`: a GitHub PAT with `write:packages` on the **TTGDevX** org. `GITHUB_TOKEN` from a repo outside TTGDevX cannot push to `ghcr.io/ttgdevx/...`.
-2. Push to `main` or run the **Build and publish crafting-apps image** workflow (`workflow_dispatch`). The workflow pushes `ghcr.io/ttgdevx/crafting-apps:latest` and `ghcr.io/ttgdevx/crafting-apps:<short-sha>` for `linux/amd64`.
+1. No extra secret is needed: the workflow logs in to GHCR with the built-in `GITHUB_TOKEN` (`packages: write`).
+2. Push to `main` or run the **Build and publish crafting-apps image** workflow (`workflow_dispatch`). The workflow pushes `ghcr.io/moxneo/crafting-apps:latest` and `ghcr.io/moxneo/crafting-apps:<short-sha>` for `linux/amd64`.
 3. In GitHub → **Packages** → `crafting-apps`, set package visibility to **Public** once. Wings nodes pull the image anonymously; a private package fails on nodes without registry credentials.
 
-The egg's Docker image is `ghcr.io/ttgdevx/crafting-apps:latest`. Wings pulls it from GHCR when you create or reinstall a server.
+The egg's Docker image is `ghcr.io/moxneo/crafting-apps:latest`. Wings pulls it from GHCR when you create or reinstall a server.
 
 ### Local build fallback
 

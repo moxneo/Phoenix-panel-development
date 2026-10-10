@@ -24,4 +24,4 @@ I am building this in the open, one piece at a time. If it is useful to you, I w
 
 - [`eggs/crafting-apps/`](eggs/crafting-apps/): Crafting Apps egg, image Dockerfile, install/start script, and technical documentation.
 - [`extensions/`](extensions/): Phoenix panel extensions.
-- `.github/workflows/crafting-apps-image.yml`: builds and publishes `ghcr.io/ttgdevx/crafting-apps`.
+- `.github/workflows/crafting-apps-image.yml`: builds and publishes `ghcr.io/moxneo/crafting-apps`.

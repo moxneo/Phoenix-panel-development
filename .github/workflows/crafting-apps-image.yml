@@ -19,7 +19,7 @@ permissions:
   packages: write
 
 env:
-  IMAGE: ghcr.io/ttgdevx/crafting-apps
+  IMAGE: ghcr.io/moxneo/crafting-apps
 
 jobs:
   build:
@@ -37,7 +37,7 @@ jobs:
         with:
           registry: ghcr.io
           username: ${{ github.actor }}
-          password: ${{ secrets.GHCR_TOKEN }}
+          password: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Short SHA tag
         id: sha

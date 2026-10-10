@@ -1,8 +1,27 @@
+<p align="center">
+  <a href="https://phoenixpanel.io/"><img src="docs/images/phoenix-logo.png" alt="Phoenix panel logo" width="160"></a>
+</p>
+
 # Phoenix Panel Development
 
-When I got early access to the Phoenix panel, it changed how I thought about what I could build. Most of what gets made for panels like this is gaming eggs and extensions, and there is nothing wrong with that. But working with Phoenix gave me the ambition to offer more than that: to build it out into a platform that small and medium-sized businesses can actually use day to day.
+**Phoenix panel website: [phoenixpanel.io](https://phoenixpanel.io/)**
+
+When I got early access to the [Phoenix panel](https://phoenixpanel.io/), it changed how I thought about what I could build. Most of what gets made for panels like this is gaming eggs and extensions, and there is nothing wrong with that. But working with Phoenix gave me the ambition to offer more than that: to build it out into a platform that small and medium-sized businesses can actually use day to day.
 
 This repository is where that work lives.
+
+## Screenshots
+
+Screenshots of [phoenixpanel.io](https://phoenixpanel.io/), captured October 2026.
+
+![Phoenix homepage hero](docs/images/phoenix-home-hero.png)
+*The phoenixpanel.io homepage.*
+
+![Phoenix vs Pterodactyl comparison page](docs/images/phoenix-comparison.png)
+*The Phoenix vs Pterodactyl comparison page.*
+
+![Phoenix Marketplace extensions catalog](docs/images/phoenix-extensions.png)
+*The Phoenix Marketplace extensions and themes catalog.*
 
 ## Crafting Apps, the first egg
 

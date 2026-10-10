@@ -378,8 +378,10 @@ write_caddyfile() {
 	admin off
 	persist_config off
 	auto_https off
+	storage file_system ${ROOT}/.caddy/data
 }
-:${SERVER_PORT} {
+# Plain HTTP on every interface, any Host header (Wings reaches it by node IP).
+http://:${SERVER_PORT} {
 	bind 0.0.0.0
 	root * ${ROOT}/www
 	encode gzip
@@ -406,6 +408,11 @@ start_web() {
     die "caddy is not installed in this image"
   fi
   log "MODE=web uses the browser GPU (WebGPU, with WebGL2 fallback). The node GPU is not used."
+  # Read-only root fs: keep Caddy's HOME/XDG state under ROOT, not /.local.
+  mkdir -p "${ROOT}/.caddy/data" "${ROOT}/.caddy/config"
+  export HOME="$ROOT"
+  export XDG_DATA_HOME="${ROOT}/.caddy/data"
+  export XDG_CONFIG_HOME="${ROOT}/.caddy/config"
   write_caddyfile
   log "serving ${ROOT}/www on 0.0.0.0:${SERVER_PORT}"
   caddy run --config "$caddyfile" --adapter caddyfile &

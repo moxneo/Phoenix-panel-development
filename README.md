@@ -51,6 +51,10 @@ Seven more eggs are published under [`eggs/`](eggs/):
 - **Odoo (External DB)**: Odoo 16/17/18 ERP and business apps against an external PostgreSQL server, with optional Git-based custom addons. [`eggs/odoo/`](eggs/odoo/)
 - **ChromaDB**: persistent ChromaDB vector database server on the allocation port, with a local backup script. [`eggs/chromadb/`](eggs/chromadb/)
 
+## Disclaimer
+
+These eggs, images, scripts and extensions are provided as-is, without warranty of any kind. Use them at your own risk. You are responsible for securing your own deployments: assign Tailscale IP allocations (not public IPs) where an egg says so, set and protect strong passwords and tokens, and keep images and apps updated. This project is not affiliated with or endorsed by the Phoenix panel or any of the upstream app projects it packages.
+
 ## Repository layout
 
 - [`eggs/crafting-apps/`](eggs/crafting-apps/): Crafting Apps egg, image Dockerfile, install/start script, and technical documentation.

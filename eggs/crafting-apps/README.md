@@ -26,7 +26,7 @@ Install container: `debian:bookworm-slim` (the script installs `curl`, `ca-certi
 2. Push to `main` or run the **Build and publish crafting-apps image** workflow (`workflow_dispatch`). The workflow pushes `ghcr.io/moxneo/crafting-apps:latest` and `ghcr.io/moxneo/crafting-apps:<short-sha>` for `linux/amd64`.
 3. In GitHub → **Packages** → `crafting-apps`, set package visibility to **Public** once. Wings nodes pull the image anonymously; a private package fails on nodes without registry credentials.
 
-The egg's Docker image is `ghcr.io/moxneo/crafting-apps:latest`. Wings pulls it from GHCR when you create or reinstall a server.
+The egg's default Docker image is `ghcr.io/moxneo/crafting-apps:027fd50@sha256:f7808241…` (a CI short-SHA tag pinned by digest). `ghcr.io/moxneo/crafting-apps:latest` is offered as an opt-in image. To move the pin, take the new short-SHA tag and its digest from GHCR and update `docker_images`. Wings pulls the image from GHCR when you create or reinstall a server.
 
 ### Local build fallback
 
@@ -54,7 +54,7 @@ Reinstall after changing `APP`, `MODE`, or `VERSION`. Install downloads only the
 
 ## Release verification
 
-Storytold releases publish `SHA256SUMS.txt` (checked on photocraft v0.5.0). Install downloads it and checks the selected asset with `sha256sum`. This is an integrity check against the checksums published in the same release, not signature verification; a mismatch or a missing entry aborts the install and removes the cached file. If a release has no SHA256SUMS, the script logs that the asset is unverified beyond the GitHub host allowlist and the archive test, and continues.
+Storytold releases publish `SHA256SUMS.txt` (checked on photocraft v0.5.0). Install downloads it and checks the selected asset with `sha256sum`. This is an integrity check against the checksums published in the same release, not signature verification; a mismatch or a missing entry aborts the install and removes the cached file. If a release has no SHA256SUMS, install now **fails closed** (as of 2026-10-10 every app's latest release publishes `SHA256SUMS.txt`; some older tags may not, so pick a tag that does). This still only checks against checksums from the same release, not a signature.
 
 ## Tailscale
 

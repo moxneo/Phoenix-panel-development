@@ -229,8 +229,7 @@ verify_sha256() {
   local sums_url sums expected actual
   sums_url=$(jq -r 'first((.assets // [])[] | select(.name == "SHA256SUMS.txt" or .name == "SHA256SUMS") | .browser_download_url) // empty' <<<"$release_json")
   if [[ -z "$sums_url" ]]; then
-    log "release ${tag} has no SHA256SUMS; ${asset_name} is unverified beyond the host allowlist and archive test"
-    return 0
+    die "release ${tag} has no SHA256SUMS; refusing unverified ${asset_name} (pick a VERSION whose release publishes SHA256SUMS.txt)"
   fi
   case "$sums_url" in
     https://github.com/*) ;;

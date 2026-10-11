@@ -13,12 +13,16 @@ Until you set your own password, the dashboard port serves only a small first-ru
 
 The setup page is plain HTTP. If the network between you and the node is untrusted, do the first-run step over a tunnel (Cloudflare/Tailscale eggs) or an SSH port forward.
 
+## Upstream pinning
+
+The upstream installer is fetched by full commit SHA (`HERMES_VERSION`, default `f97608f178d1ffeca59860195ab7da295f7c8e5f` = tag `v2026.9.24`) and its sha256 is checked against `HERMES_INSTALL_SHA256` before it runs. A mismatch or a non-SHA value stops the start. To upgrade, an admin sets both variables (new commit SHA, and `sha256sum` of `scripts/install.sh` at that commit). `SERVER_PORT` comes from the allocation and is not user-editable.
+
 ## Import
 
 In your panel: Admin → Nests → Import Egg, then select `egg-hermes-agent-v3.json`.
 
 ## Images
 
-- Debian 12: `ghcr.io/ptero-eggs/yolks:debian`
+- Debian 12: `ghcr.io/ptero-eggs/yolks:debian@sha256:3a31e5b2…` (multi-arch index digest, pinned)
 
 Author: Mox Neo

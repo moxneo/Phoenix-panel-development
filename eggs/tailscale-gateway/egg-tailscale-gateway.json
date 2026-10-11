@@ -9,7 +9,8 @@
     "description": "Runs the official Tailscale container (containerboot) as a userspace gateway node. Set TS_AUTHKEY to join your tailnet.",
     "features": [],
     "docker_images": {
-        "Default": "tailscale/tailscale"
+        "Tailscale 1.102.5 (pinned)": "tailscale/tailscale:v1.102.5@sha256:c507f3a2a6ab1cabd8d809b98edeb41edbd5c3fb6ad9632ffd098b4c7d0b4065",
+        "Tailscale stable (unpinned, opt-in)": "tailscale/tailscale:stable"
     },
     "file_denylist": [],
     "startup": "/usr/local/bin/containerboot",
@@ -22,7 +23,7 @@
     "scripts": {
         "installation": {
             "script": null,
-            "container": "alpine:3.4",
+            "container": "alpine:3.22@sha256:5291449c3df73caf6ed85e649dec1b9e818b39a5d8c871e97afc13e9cd5e8fa8",
             "entrypoint": "ash"
         }
     },

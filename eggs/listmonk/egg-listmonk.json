@@ -9,11 +9,11 @@
     "description": "Self-hosted newsletter and mailing-list manager using the official Listmonk image and an external PostgreSQL database.",
     "features": null,
     "docker_images": {
-        "Listmonk Latest": "listmonk/listmonk:latest",
-        "Listmonk 6.1.0": "listmonk/listmonk:v6.1.0"
+        "Listmonk 6.1.0 (pinned)": "listmonk/listmonk:v6.1.0@sha256:179d00d9553c371b6fe88c9b145095d651e275bdd66db46b2e0b79daff316b6f",
+        "Listmonk latest (unpinned, opt-in)": "listmonk/listmonk:latest"
     },
     "file_denylist": [],
-    "startup": "export LISTMONK_app__address=0.0.0.0:{{SERVER_PORT}}; /listmonk/listmonk --install --idempotent --yes --config=\"\" && /listmonk/listmonk --upgrade --yes --config=\"\" && exec /listmonk/listmonk --config=\"\"",
+    "startup": "sh /home/container/start.sh",
     "config": {
         "files": "{}",
         "startup": "{\r\n  \"done\": \"listening on\"\r\n}",
@@ -22,8 +22,8 @@
     },
     "scripts": {
         "installation": {
-            "script": "#!/bin/bash\nset -e\nmkdir -p /mnt/server/uploads\ncat > /mnt/server/README-PTERODACTYL.txt <<'EOF'\nListmonk requires an external PostgreSQL 12 or newer database.\nSet the database variables in the Pterodactyl Startup tab.\nAfter starting, configure filesystem media uploads as:\n/home/container/uploads\nEOF\necho 'Listmonk server files prepared.'",
-            "container": "ghcr.io/ptero-eggs/installers:debian",
+            "script": "#!/bin/bash\nset -e\nmkdir -p /mnt/server/uploads\ncat > /mnt/server/README-PTERODACTYL.txt <<'EOF'\nListmonk requires an external PostgreSQL 12 or newer database.\nSet the database variables in the Pterodactyl Startup tab.\nAfter starting, configure filesystem media uploads as:\n/home/container/uploads\nEOF\n\ncat > /mnt/server/start.sh <<'EOF'\n#!/bin/sh\nset -eu\ncd /home/container\numask 077\nPW_FILE=/home/container/.listmonk-admin-password\nLISTMONK_ADMIN_USER=\"${LISTMONK_ADMIN_USER:-admin}\"\n[ -n \"$LISTMONK_ADMIN_USER\" ] || LISTMONK_ADMIN_USER=admin\nif [ -n \"${LISTMONK_ADMIN_PASSWORD:-}\" ]; then\n  if [ \"${#LISTMONK_ADMIN_PASSWORD}\" -lt 12 ]; then\n    echo \"[listmonk] LISTMONK_ADMIN_PASSWORD must be at least 12 characters\"\n    exit 1\n  fi\nelse\n  # Never start with a blank admin password: that lets the first visitor\n  # create the admin account. Generate one and keep it across restarts.\n  if [ ! -s \"$PW_FILE\" ]; then\n    head -c 24 /dev/urandom | od -An -tx1 | tr -d ' \\n' > \"$PW_FILE\"\n    printf 'Listmonk first login\\nuser=%s\\npassword=%s\\nChange it in Listmonk (Users) after logging in, then delete this file.\\n' \\\n      \"$LISTMONK_ADMIN_USER\" \"$(cat \"$PW_FILE\")\" > /home/container/FIRST_LOGIN.txt\n    chmod 600 \"$PW_FILE\" /home/container/FIRST_LOGIN.txt\n    echo \"[listmonk] generated admin password; see /home/container/FIRST_LOGIN.txt\"\n  fi\n  LISTMONK_ADMIN_PASSWORD=$(cat \"$PW_FILE\")\nfi\nexport LISTMONK_ADMIN_USER LISTMONK_ADMIN_PASSWORD\nexport LISTMONK_app__address=\"0.0.0.0:${SERVER_PORT}\"\n/listmonk/listmonk --install --idempotent --yes --config=\"\"\n/listmonk/listmonk --upgrade --yes --config=\"\"\nexec /listmonk/listmonk --config=\"\"\nEOF\nchmod 0755 /mnt/server/start.sh\necho 'Listmonk server files prepared.'\n",
+            "container": "ghcr.io/ptero-eggs/installers:debian@sha256:084e7a28d9902d054b35bcad7c547bcd3b5739040b9e0f5bfe63bb18ce021423",
             "entrypoint": "bash"
         }
     },
@@ -60,12 +60,12 @@
         },
         {
             "name": "Initial Admin Password",
-            "description": "Initial Super Admin password. Change this before the first start.",
+            "description": "Admin password for first install (min 12). Leave blank to auto-generate one; it is saved to /home/container/FIRST_LOGIN.txt. Listmonk never starts with a blank admin password.",
             "env_variable": "LISTMONK_ADMIN_PASSWORD",
             "default_value": "",
             "user_viewable": true,
             "user_editable": true,
-            "rules": "nullable|string|min:8|max:255",
+            "rules": "nullable|string|min:12|max:255",
             "field_type": "text"
         },
         {
@@ -75,7 +75,7 @@
             "default_value": "admin",
             "user_viewable": true,
             "user_editable": true,
-            "rules": "nullable|string|max:64",
+            "rules": "nullable|string|max:64|regex:/^[A-Za-z0-9._@-]*$/",
             "field_type": "text"
         },
         {

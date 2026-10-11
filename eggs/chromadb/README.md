@@ -48,6 +48,6 @@ In your panel: Admin → Nests → Import Egg, then select `egg-chromadb.json`.
 
 ## Images
 
-- ChromaDB 1.5.3: `chromadb/chroma:1.5.3`
+- ChromaDB 1.5.3: `chromadb/chroma:1.5.3@sha256:cfd19365…` (multi-arch index digest, pinned). Install container: `alpine:3.22` (digest-pinned).
 
 Author: Mox Neo

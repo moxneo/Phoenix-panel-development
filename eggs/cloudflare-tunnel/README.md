@@ -8,6 +8,6 @@ In your panel: Admin → Nests → Import Egg, then select `egg-cloudflare-tunne
 
 ## Images
 
-- Debian: `ghcr.io/parkervcp/yolks:debian`
+- Debian: `ghcr.io/parkervcp/yolks:debian@sha256:47174f48…` (multi-arch index digest, pinned). Install container: `ghcr.io/pterodactyl/installers:alpine` (digest-pinned).
 
 Author: Mox Neo

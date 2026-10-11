@@ -2,7 +2,7 @@
 # Tag: crafting-apps:latest
 # Build on the Wings node (this repo does not push a registry):
 #   docker build -t crafting-apps:latest eggs/crafting-apps
-FROM debian:bookworm-slim
+FROM debian:bookworm-slim@sha256:7c7b2c966bc9ee8cedfeef67e0e279108992c77681fa595db4a9d65c06ccc587
 
 # GPU device nodes are optional. vulkan-loader (libvulkan1) is installed either way.
 # ponytail: upstream noVNC (/opt/novnc), bookworm websockify/x11vnc and mesa lavapipe. Upgrade path: bump NOVNC_VERSION

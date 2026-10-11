@@ -14,26 +14,56 @@ name: Build and publish crafting-apps image
       - ".github/workflows/crafting-apps-image.yml"
   workflow_dispatch:
 
+# Least privilege by default. Only the publish job (never run for
+# pull_request events) gets packages: write.
 permissions:
   contents: read
-  packages: write
 
 env:
   IMAGE: ghcr.io/moxneo/crafting-apps
 
 jobs:
-  build:
+  build-pr:
+    # Pull requests: build only, no registry login, no package token.
+    if: github.event_name == 'pull_request'
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.4.0
+        with:
+          persist-credentials: false
 
       - name: Set up Docker Buildx
-        uses: docker/setup-buildx-action@v3
+        uses: docker/setup-buildx-action@8d2750c68a42422c14e847fe6c8ac0403b4cbd6f # v3.12.0
+
+      - name: Build (no push)
+        uses: docker/build-push-action@10e90e3645eae34f1e60eeb005ba3a3d33f178e8 # v6.19.2
+        with:
+          context: eggs/crafting-apps
+          file: eggs/crafting-apps/Dockerfile
+          platforms: linux/amd64
+          push: false
+
+  publish:
+    # push to main / manual dispatch. Pushes only from refs/heads/main.
+    if: github.event_name != 'pull_request'
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: write
+    steps:
+      - name: Checkout
+        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.4.0
+        with:
+          persist-credentials: false
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@8d2750c68a42422c14e847fe6c8ac0403b4cbd6f # v3.12.0
 
       - name: Log in to GHCR
-        if: github.event_name != 'pull_request'
-        uses: docker/login-action@v3
+        uses: docker/login-action@c94ce9fb468520275223c153574b00df6fe4bcc9 # v3.7.0
         with:
           registry: ghcr.io
           username: ${{ github.actor }}
@@ -46,19 +76,15 @@ jobs:
       - name: Publish flags
         id: publish
         run: |
-          if [ "${{ github.event_name }}" = "pull_request" ]; then
-            echo "push=false" >> "$GITHUB_OUTPUT"
-          elif [ "${{ github.ref }}" != "refs/heads/main" ]; then
-            echo "push=false" >> "$GITHUB_OUTPUT"
-          else
+          if [ "${GITHUB_REF}" = "refs/heads/main" ]; then
             echo "push=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "push=false" >> "$GITHUB_OUTPUT"
           fi
-          {
-            echo "source=https://github.com/${GITHUB_REPOSITORY}"
-          } >> "$GITHUB_OUTPUT"
+          echo "source=https://github.com/${GITHUB_REPOSITORY}" >> "$GITHUB_OUTPUT"
 
       - name: Build and push
-        uses: docker/build-push-action@v6
+        uses: docker/build-push-action@10e90e3645eae34f1e60eeb005ba3a3d33f178e8 # v6.19.2
         with:
           context: eggs/crafting-apps
           file: eggs/crafting-apps/Dockerfile

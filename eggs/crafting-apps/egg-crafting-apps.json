@@ -7,7 +7,7 @@
     "exported_at": "2026-10-09T00:00:00+00:00",
     "name": "Crafting Apps",
     "author": "Mox Neo",
-    "description": "Generic Wings egg for the Storytold Crafting Apps (photocraft, vectorcraft, filmcraft, lightcraft, pdfcraft, effectcraft, designcraft). One egg, one server, one app. APP selects the GitHub release; reinstall replaces the served app. MODE=web serves the static wasm build with Caddy on the server allocation. MODE=native runs the Linux GUI under Xvfb and noVNC on that same allocation. No login page. Expose the allocation with Tailscale. Image: ghcr.io/moxneo/crafting-apps:latest (built and published from the crafting-apps repository; see README.md).",
+    "description": "Generic Wings egg for the Storytold Crafting Apps (photocraft, vectorcraft, filmcraft, lightcraft, pdfcraft, effectcraft, designcraft). One egg, one server, one app. APP selects the GitHub release; reinstall replaces the served app. MODE=web serves the static wasm build with Caddy on the server allocation. MODE=native runs the Linux GUI under Xvfb and noVNC on that same allocation. No login page. Expose the allocation with Tailscale. Native mode serves noVNC over plain HTTP with a standard 8-character VNC password (the VNC protocol's limit): assign Tailscale IP allocations only and never expose it on a public IP. Image: ghcr.io/moxneo/crafting-apps:latest (built and published from the crafting-apps repository; see README.md).",
     "features": null,
     "docker_images": {
         "Crafting Apps": "ghcr.io/moxneo/crafting-apps:latest"
@@ -43,7 +43,7 @@
         },
         {
             "name": "Mode",
-            "description": "web serves the release's static wasm site with Caddy on the server allocation (browser WebGPU/WebGL2; the node GPU is not used). native unpacks the linux-x86_64 tarball and serves the GUI through noVNC on the server allocation.",
+            "description": "web serves the release's static wasm site with Caddy on the server allocation (browser WebGPU/WebGL2; the node GPU is not used). native unpacks the linux-x86_64 tarball and serves the GUI through noVNC on the server allocation. Native mode serves noVNC over plain HTTP with a standard 8-character VNC password (the VNC protocol's limit): assign Tailscale IP allocations only and never expose it on a public IP.",
             "env_variable": "MODE",
             "default_value": "web",
             "user_viewable": true,

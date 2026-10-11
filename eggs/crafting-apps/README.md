@@ -93,6 +93,8 @@ Web mode needs HTTPS or localhost for WebGPU. Tailscale HTTPS on 443 is a secure
 
 ## Native mode
 
+> **Security note: Tailscale IP allocations only.** Native mode serves noVNC over plain HTTP (unencrypted WebSocket). It is protected only by a standard 8-character VNC password, which is the VNC protocol's limit. Assign this server **Tailscale IP allocations only** and **never expose it on a public IP**.
+
 `MODE=native` unpacks `<app>-<version>-linux-x86_64.tar.gz` into `/home/container/app`. Current tarballs contain `bin/<app>` and `bin/<app>-cli`.
 
 The panel allocation is a browser desktop: Xvfb plus x11vnc on `127.0.0.1:5900` plus websockify/noVNC on `0.0.0.0:${SERVER_PORT}`. Open `/vnc.html` (autoconnect: `/vnc.html?autoconnect=1&resize=scale`). x11vnc runs with `-rfbauth /home/container/.vnc-passwd`, not `-nopw`. On first native start the script creates a random per-server password (8 printable characters from `openssl rand -base64 6`, about 48 bits), stores the plain text in `/home/container/.vnc-password` and the x11vnc hash in `/home/container/.vnc-passwd` (umask 077, mode `0600`), and logs the path (not the password). The hash is written with the password on stdin, not argv. Read the password in the panel file manager: open `.vnc-password`. Only the hash file `.vnc-passwd` is in the egg's `file_denylist`. noVNC prompts for it. Delete both files and restart to rotate. An 8-character VNC password is a second layer, not a substitute for access control: keep the allocation reachable only over Tailscale.
